@@ -27,7 +27,7 @@ def login():
 
         cur = mysql.connection.cursor()
         cur.execute("""
-            SELECT id, AccessRights
+            SELECT idEmployees, AccessRights
             FROM LogisticCompany.Employees
             WHERE Login = %s AND PassHash = %s;
             """, (login, passhash,))
