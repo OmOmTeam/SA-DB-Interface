@@ -44,10 +44,10 @@ def get_order_by_id():
             response['error'] = 'Invalid JSON'
             return jsonify(response)
 
-        cur.execute('CALL LogisticCompany.GetOrderById', (order_id, ))
+        cur.execute('CALL LogisticCompany.GetOrders')
 
         res = cur.fetchall()
-        response['orders'] = unfold_orders(res)
+        response['orders'] = next((item for item in unfold_orders(res) if item['id'] == order_id), None)
 
     return jsonify(response)
 
