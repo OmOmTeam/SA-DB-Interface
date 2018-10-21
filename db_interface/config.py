@@ -7,6 +7,7 @@ class Config(object):
     MYSQL_PORT = 6033
     MYSQL_USER = "root"
     MYSQL_PASSWORD = "SATeamDB777"
+    JSON_AS_ASCII = False
 
 
 class DevelopConfig(Config):
