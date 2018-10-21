@@ -27,7 +27,7 @@ def add_warehouse():
                 request_json['street'], request_json['buildingNum'], request_json['additionalInfo'])
 
         cur.callproc('LogisticCompany.AddWarehouse', args)
-        cur.execute("SELECT @_LogisticCompany.AddWarehouse_0")
+        cur.execute('SELECT @_LogisticCompany.AddWarehouse_0')
 
         response['warehouse_id'] = cur.fetchone()[0]
 
@@ -37,5 +37,23 @@ def add_warehouse():
     except KeyError:
         response['error'] = 'Invalid JSON'
         return jsonify(response)
+
+    return jsonify(response)
+
+
+@app.route('/get_warehouses', methods=['GET'])
+def get_warehouses():
+    response = {'error': 'none', 'warehouses': []}
+
+    cur = mysql.connection.cursor()
+
+    cur.callproc('LogisticCompany.GetWareHouses')
+
+    for row in cur.fetchall():
+        response['warehouses'].append({'id': row[0], 'capacity': row[1], 'current_load': row[2], 'country': row[3],
+                                       'region': row[4], 'city': row[5], 'street': row[6], 'building_number': row[7],
+                                       'additional_info': row[8]})
+
+    cur.close()
 
     return jsonify(response)
