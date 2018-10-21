@@ -118,3 +118,100 @@ def unfold_orders(query_results):
                 })
 
         return orders
+
+@app.route('/add_order', methods=['POST', ])
+def add_order():
+    response = {'error': 'none'}
+    if not request.is_json:
+        response['error'] = 'JSON expected'
+        return jsonify(response)
+
+    try:
+        j = response.get_json
+        cur = mysql.connection.cursor()
+        args = [0]
+
+        db_proc = 'logged_in'
+
+        if 'customer_id' in j:
+            args.append(j['customer_id'])
+        else:
+            db_proc = 'logged_out'
+
+        if 'id' in j['sender']:
+            if db_proc == 'logged_out':
+                response['error'] = 'Can\'t use id\'s without customer id, sorry'
+                return jsonify(response)
+
+            else:
+                db_proc = 'with_contact'
+
+            args.append(j['sender']['id'])
+
+        else:
+            args.append([j['sender']['name'], j['sender']['surname'],
+                         j['sender']['phone_number']])
+
+        if 'id' in j['sender']['address']:
+            if db_proc == 'logged_out':
+                response['error'] = 'Can\'t use id\'s without customer id, sorry'
+                return jsonify(response)
+
+            elif db_proc == 'with_contact':
+                db_proc = 'with_contact_and_address'
+
+            else:
+                db_proc = 'with_address'
+
+            args.append(j['sender']['address']['id'])
+
+        else:
+            args.append([
+                    j['sender']['address']['country'],
+                    j['sender']['address']['region'],
+                    j['sender']['address']['city'],
+                    j['sender']['address']['street'],
+                    j['sender']['address']['building'],
+                    j['sender']['address']['additional_info']
+                ])
+
+        args.append([
+                j['receiver']['name'], j['receiver']['surname'],
+                j['receiver']['phone_number'],
+                j['receiver']['address']['country'],
+                j['receiver']['address']['region'],
+                j['receiver']['address']['city'],
+                j['receiver']['address']['street'],
+                j['receiver']['address']['building'],
+                j['receiver']['address']['additional_info'],
+
+                j['attached_notes'],
+                j['delivery_type'],
+                j['pickup_type']
+            ])
+
+        cur = mysql.connection.cursor()
+
+        if db_proc == 'logged_in':
+            cur.callproc('LogisticCompany.AddOrderLoggedIn', args)
+            cur.execute('SELECT @_LogisticCompany.AddOrderLoggedIn_0')
+        elif db_proc == 'logged_out':
+            cur.callproc('LogisticCompany.AddOrderLoggedOut', args)
+            cur.execute('SELECT @_LogisticCompany.AddOrderLoggedOut_0')
+        elif db_proc == 'with_address':
+            cur.callproc('LogisticCompany.AddOrderWithAddress', args)
+            cur.execute('SELECT @_LogisticCompany.AddOrderWithAddress_0')
+        elif db_proc == 'with_contact':
+            cur.callproc('LogisticCompany.AddOrderWithContact', args)
+            cur.execute('SELECT @_LogisticCompany.AddOrderWithContact_0')
+        elif db_proc == 'with_contact_and_address':
+            cur.callproc('LogisticCompany.AddOrderWithContactAndAddress', args)
+            cur.execute('SELECT @_LogisticCompany.AddOrderWithContactAndAddress_0')
+
+        res = cur.fetchone()
+        response['order_id'] = res
+
+    except KeyError:
+        response['error'] = 'Invalid JSON'
+
+    return jsonify(response)
