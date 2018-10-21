@@ -29,5 +29,8 @@ def create_parcel():
         cur = mysql.connection.cursor()
         cur.execute('CALL LogisticCompany.CreateParcel', args)
 
+        mysql.connection.commit()
+        cur.close()
+
     except KeyError:
         response['error'] = 'Invalid JSON'

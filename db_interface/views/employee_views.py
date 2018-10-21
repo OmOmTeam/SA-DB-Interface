@@ -34,6 +34,8 @@ def login():
 
         employee_id, access_rights = cur.fetchone()
 
+        cur.close()
+
         if employee_id:
             response['access_rights'] = access_rights
 
@@ -62,6 +64,9 @@ def register_new_employee():
         args = (j['login'], j['password_hash'], j['role'])
         cur.callproc('LogisticCompany.Registration', args)
 
+        mysql.connection.commit()
+        cur.close()
+
     except KeyError:
         response['error'] = 'Invalid JSON'
 
@@ -70,6 +75,8 @@ def register_new_employee():
 
 @app.route('/get_access_rights', methods=['GET', ])
 def get_access_rights():
+    response = {'error': 'none'}
+
     cur = mysql.connection.cursor()
 
     args = ('Admin', 'admin', 0)
@@ -78,4 +85,8 @@ def get_access_rights():
 
     res = cur.fetchone()
 
-    return str(res[0])
+    cur.close()
+
+    response['access_rights'] = res[0]
+
+    return jsonify(response)

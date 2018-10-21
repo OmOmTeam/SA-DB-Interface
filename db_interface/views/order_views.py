@@ -23,6 +23,8 @@ def get_orders():
     res = cur.fetchall()
     response['orders'] = unfold_orders(res)
 
+    cur.close()
+
     return jsonify(response)
 
 
@@ -47,6 +49,8 @@ def get_order_by_id():
         cur.execute('CALL LogisticCompany.GetOrders')
 
         res = cur.fetchall()
+        cur.close()
+
         response['orders'] = next((item for item in unfold_orders(res) if item['id'] == order_id), None)
 
     return jsonify(response)
@@ -61,6 +65,8 @@ def orders_to_approve():
     cur.execute('CALL LogisticCompany.GetOrdersOnValidating')
 
     res = cur.fetchall()
+    cur.close()
+
     response['orders'] = unfold_orders(res)
 
     return jsonify(response)
@@ -210,6 +216,9 @@ def add_order():
 
         res = cur.fetchone()
         response['order_id'] = res
+
+        mysql.connection.commit()
+        cur.close()
 
     except KeyError:
         response['error'] = 'Invalid JSON'
