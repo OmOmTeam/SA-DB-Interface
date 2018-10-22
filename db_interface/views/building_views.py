@@ -32,7 +32,6 @@ def add_warehouse():
         response['warehouse_id'] = cur.fetchone()[0]
 
         mysql.connection.commit()
-        cur.close()
 
     except KeyError:
         response['error'] = 'Invalid JSON'
@@ -53,7 +52,5 @@ def get_warehouses():
         response['warehouses'].append({'id': row[0], 'capacity': row[1], 'current_load': row[2], 'country': row[3],
                                        'region': row[4], 'city': row[5], 'street': row[6], 'building_number': row[7],
                                        'additional_info': row[8]})
-
-    cur.close()
 
     return jsonify(response)
