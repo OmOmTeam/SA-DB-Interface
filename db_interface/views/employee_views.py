@@ -59,8 +59,11 @@ def register_new_employee():
 
         cur = mysql.connection.cursor()
 
-        args = (j['login'], j['password_hash'], j['role'])
+        args = (0, j['login'], j['password_hash'], j['role'])
         cur.callproc('LogisticCompany.RegisterEmployee', args)
+        cur.execute('SELECT @_LogisticCompany.RegisterEmployee_0')
+
+        response['employee_id'] = cur.fetchone()[0]
 
         mysql.connection.commit()
 
@@ -74,15 +77,20 @@ def register_new_employee():
 def get_access_rights():
     response = {'error': 'none'}
 
-    cur = mysql.connection.cursor()
+    try:
 
-    args = ('Admin', 'admin', 0)
-    cur.callproc('LogisticCompany.GetAccessRights', args)
-    cur.execute('SELECT @_LogisticCompany.GetAccessRights_2')
+        cur = mysql.connection.cursor()
 
-    res = cur.fetchone()
+        args = (request.args['login'], request.args['password_hash'], 0)
+        cur.callproc('LogisticCompany.GetAccessRights', args)
+        cur.execute('SELECT @_LogisticCompany.GetAccessRights_2')
 
-    response['access_rights'] = res[0]
+        res = cur.fetchone()
+
+        response['access_rights'] = res[0]
+
+    except KeyError:
+        response['error'] = 'Invalid parameters'
 
     return jsonify(response)
 
