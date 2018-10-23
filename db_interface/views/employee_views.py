@@ -60,7 +60,7 @@ def register_new_employee():
         cur = mysql.connection.cursor()
 
         args = (j['login'], j['password_hash'], j['role'])
-        cur.callproc('LogisticCompany.Registration', args)
+        cur.callproc('LogisticCompany.RegisterEmployee', args)
 
         mysql.connection.commit()
 
@@ -83,5 +83,29 @@ def get_access_rights():
     res = cur.fetchone()
 
     response['access_rights'] = res[0]
+
+    return jsonify(response)
+
+
+@app.route('/register_customer', methods=['POST', ])
+def register_customer():
+    response = {'error': 'none'}
+
+    if not request.is_json:
+        response['error'] = 'JSON expected'
+        return jsonify(response)
+
+    try:
+        j = request.get_json()
+
+        cur = mysql.connection.cursor()
+
+        args = (j['login'], j['password_hash'], j['role'])
+        cur.callproc('LogisticCompany.RegisterCustomer', args)
+
+        mysql.connection.commit()
+
+    except KeyError:
+        response['error'] = 'Invalid JSON'
 
     return jsonify(response)
