@@ -11,6 +11,40 @@ def test():
 """
 
 
+@app.route('/add_address', methods=['POST', ])
+def add_address():
+    response = {'error': 'none'}
+
+    if not request.is_json:
+        response['error'] = 'JSON expected'
+        return jsonify(response)
+
+    try:
+        cur = mysql.connection.cursor()
+        request_json = request.get_json()
+
+        args = (request_json['country'],
+                request_json['region'],
+                request_json['city'],
+                request_json['street'],
+                request_json['building'],
+                request_json['addition_info'],
+                0)
+
+        cur.callproc('LogisticCompany.AddAddress', args)
+        cur.execute('SELECT @_LogisticCompany.AddAddress_6')
+
+        response['address_id'] = cur.fetchone()[0]
+
+        mysql.connection.commit()
+
+    except KeyError:
+        response['error'] = 'Invalid JSON'
+        return jsonify(response)
+
+    return jsonify(response)
+
+
 @app.route('/add_warehouse', methods=['POST', ])
 def add_warehouse():
     response = {'error': 'none'}
@@ -23,8 +57,11 @@ def add_warehouse():
         cur = mysql.connection.cursor()
         request_json = request.get_json()
 
-        args = (0, request_json['capacity'], request_json['country'], request_json['region'], request_json['city'],
-                request_json['street'], request_json['buildingNum'], request_json['additionalInfo'])
+        args = (0, request_json['capacity'], request_json['country'],
+                request_json['region'], request_json['city'],
+                request_json['street'], request_json['building'],
+                request_json['additional_info']
+                )
 
         cur.callproc('LogisticCompany.AddWarehouse', args)
         cur.execute('SELECT @_LogisticCompany.AddWarehouse_0')
@@ -49,8 +86,16 @@ def get_warehouses():
     cur.callproc('LogisticCompany.GetWareHouses')
 
     for row in cur.fetchall():
-        response['warehouses'].append({'id': row[0], 'capacity': row[1], 'current_load': row[2], 'country': row[3],
-                                       'region': row[4], 'city': row[5], 'street': row[6], 'building_number': row[7],
-                                       'additional_info': row[8]})
+        response['warehouses'].append({
+            'id': row[0],
+            'capacity': row[1],
+            'current_load': row[2],
+            'country': row[3],
+            'region': row[4],
+            'city': row[5],
+            'street': row[6],
+            'building': row[7],
+            'additional_info': row[8]
+            })
 
     return jsonify(response)
