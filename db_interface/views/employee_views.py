@@ -100,7 +100,7 @@ def register_customer():
 
         cur = mysql.connection.cursor()
 
-        args = (j['login'], j['password_hash'], j['role'])
+        args = (j['login'], j['password_hash'])
         cur.callproc('LogisticCompany.RegisterCustomer', args)
 
         mysql.connection.commit()
