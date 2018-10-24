@@ -121,8 +121,14 @@ def unfold_orders(query_results):
 
         return orders
 
+
 @app.route('/add_order', methods=['POST', ])
 def add_order():
+    """
+    response = {'error': 'not implemented'}
+    return jsonify(response)
+
+    """
     response = {'error': 'none'}
     if not request.is_json:
         response['error'] = 'JSON expected'
@@ -132,6 +138,24 @@ def add_order():
         j = request.get_json()
         cur = mysql.connection.cursor()
         args = [0]
+
+        # select delivery types to check them
+        cur.execute("SELECT Type from LogisticCompany.DeliveryType")
+        delivery_types = cur.fetchall()
+        delivery_types = [dt[0] for dt in delivery_types]
+
+        if j['delivery_type'] not in delivery_types:
+            response['error'] = 'Invalid delivery type'
+            return jsonify(response)
+
+        # check if pickup type is correct
+        cur.execute("SELECT Type from LogisticCompany.PickUpType")
+        pickup_types = cur.fetchall()
+        pickup_types = [pt[0] for pt in pickup_types]
+
+        if j['pickup_type'] not in pickup_types:
+            response['error'] = 'Invalid pickup type'
+            return jsonify(response)
 
         db_proc = 'logged_in'
 
@@ -151,8 +175,8 @@ def add_order():
             args.append(j['sender']['id'])
 
         else:
-            args.append([j['sender']['name'], j['sender']['surname'],
-                         j['sender']['phone_number']])
+            args += [j['sender']['name'], j['sender']['surname'],
+                            j['sender']['phone_number']]
 
         if 'id' in j['sender']['address']:
             if db_proc == 'logged_out':
@@ -168,16 +192,16 @@ def add_order():
             args.append(j['sender']['address']['id'])
 
         else:
-            args.append([
+            args += [
                     j['sender']['address']['country'],
                     j['sender']['address']['region'],
                     j['sender']['address']['city'],
                     j['sender']['address']['street'],
                     j['sender']['address']['building'],
                     j['sender']['address']['additional_info']
-                ])
+                ]
 
-        args.append([
+        args += [
                 j['receiver']['name'], j['receiver']['surname'],
                 j['receiver']['phone_number'],
                 j['receiver']['address']['country'],
@@ -190,7 +214,7 @@ def add_order():
                 j['attached_notes'],
                 j['delivery_type'],
                 j['pickup_type']
-            ])
+            ]
 
         cur = mysql.connection.cursor()
 
@@ -207,6 +231,8 @@ def add_order():
             cur.callproc('LogisticCompany.AddOrderWithContact', args)
             cur.execute('SELECT @_LogisticCompany.AddOrderWithContact_0')
         elif db_proc == 'with_contact_and_address':
+            # throw out customer_id as we don't need it
+            del args[1]
             cur.callproc('LogisticCompany.AddOrderWithContactAndAddress', args)
             cur.execute('SELECT @_LogisticCompany.AddOrderWithContactAndAddress_0')
 
@@ -217,5 +243,4 @@ def add_order():
 
     except KeyError:
         response['error'] = 'Invalid JSON'
-
     return jsonify(response)
