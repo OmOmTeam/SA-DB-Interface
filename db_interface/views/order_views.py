@@ -129,7 +129,7 @@ def add_order():
         return jsonify(response)
 
     try:
-        j = response.get_json
+        j = request.get_json()
         cur = mysql.connection.cursor()
         args = [0]
 
