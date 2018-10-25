@@ -30,25 +30,19 @@ def get_orders():
 def get_order_by_id():
     response = {'error': 'none', 'orders': []}
 
-    if not request.is_json:
-        response['error'] = 'JSON expected'
+    try:
+        cur = mysql.connection.cursor()
+        order_id = request.args['order_id']
+
+    except KeyError:
+        response['error'] = 'Invalid JSON'
         return jsonify(response)
 
-    else:
-        cur = mysql.connection.cursor()
+    cur.execute('CALL LogisticCompany.GetOrders')
 
-        try:
-            order_id = request.get_json['order_id']
+    res = cur.fetchall()
 
-        except KeyError:
-            response['error'] = 'Invalid JSON'
-            return jsonify(response)
-
-        cur.execute('CALL LogisticCompany.GetOrders')
-
-        res = cur.fetchall()
-
-        response['orders'] = next((item for item in unfold_orders(res) if item['id'] == order_id), None)
+    response['orders'] = next((item for item in unfold_orders(res) if item['id'] == order_id), None)
 
     return jsonify(response)
 
