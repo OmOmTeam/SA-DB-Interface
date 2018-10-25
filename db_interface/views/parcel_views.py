@@ -21,19 +21,24 @@ def create_parcel():
         return jsonify(response)
 
     try:
-        j = request.get_json
+        j = request.get_json()
         args = (j['order_id'], j['warehouse_id'],
                 j['reciep_date'], j['height'],
                 j['width'], j['depth'], j['weight'],
-                )
+                0)
 
         cur = mysql.connection.cursor()
-        cur.execute('CALL LogisticCompany.CreateParcel', args)
+        cur.callproc('LogisticCompany.CreateParcel', args)
+        cur.execute('SELECT @_LogisticCompany.CreateParcel_7')
+
+        response['parcel_id'] = cur.fetchone()[0]
 
         mysql.connection.commit()
 
     except KeyError:
         response['error'] = 'Invalid JSON'
+
+    return jsonify(response)
 
 
 @app.route('/get_parcel', methods=['GET', ])
