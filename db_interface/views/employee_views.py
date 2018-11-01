@@ -27,7 +27,7 @@ def login():
 
         cur = mysql.connection.cursor()
         cur.execute("""
-            SELECT idEmployees, AccessRights
+            SELECT idEmployees, idAccessRights
             FROM LogisticCompany.Employees
             WHERE Login = %s AND PassHash = %s;
             """, (login, passhash,))
@@ -35,13 +35,40 @@ def login():
         employee_id, access_rights = cur.fetchone()
 
         if employee_id:
-            response['access_rights'] = access_rights
+            response['access_right_id'] = access_rights
 
         else:
             response['error'] = 'Invalid Login or Password'
 
     except KeyError:
         response['error'] = 'Invalid JSON'
+
+    return jsonify(response)
+
+
+@app.route('/info_by_login', methods=['GET', ])
+def info_by_login():
+    response = {'error': 'none'}
+
+    try:
+        login = request.args['login']
+
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            SELECT Login,PassHash,idAccessRights
+            FROM LogisticCompany.Employees
+            WHERE Login = %s;
+            """, (login, ))
+
+        res = cur.fetchone()
+        print(res)
+        login, passhash, idar = res
+        response['login'] = login
+        response['password_hash'] = passhash
+        response['access_rights_id'] = idar
+
+    except KeyError:
+        response['error'] = 'Invalid parameters'
 
     return jsonify(response)
 
