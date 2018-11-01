@@ -28,21 +28,24 @@ def get_orders():
 
 @app.route('/get_order_by_id', methods=['GET', ])
 def get_order_by_id():
-    response = {'error': 'none', 'orders': []}
+    response = {'error': 'none'}
 
     try:
+        order_id = int(request.args['order_id'])
+
         cur = mysql.connection.cursor()
-        order_id = request.args['order_id']
+        cur.execute('CALL LogisticCompany.GetOrders')
+
+        res = cur.fetchall()
+        orders = unfold_orders(res)
+
+        for order in orders:
+            if order['id'] == order_id:
+                response['order'] = order
+                break
 
     except KeyError:
-        response['error'] = 'Invalid JSON'
-        return jsonify(response)
-
-    cur.execute('CALL LogisticCompany.GetOrders')
-
-    res = cur.fetchall()
-
-    response['orders'] = next((item for item in unfold_orders(res) if item['id'] == order_id), None)
+        response['error'] = 'Invalid parameters'
 
     return jsonify(response)
 
@@ -113,7 +116,7 @@ def unfold_orders(query_results):
                     'attached_notes': attached_notes
                 })
 
-        return orders
+    return orders
 
 
 @app.route('/add_order', methods=['POST', ])
