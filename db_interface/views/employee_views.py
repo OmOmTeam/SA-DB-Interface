@@ -62,10 +62,15 @@ def user_by_login():
 
         res = cur.fetchone()
         print(res)
-        login, passhash, idar = res
-        response['login'] = login
-        response['password_hash'] = passhash
-        response['access_rights_id'] = idar
+
+        if res is None:
+            response['error'] = 'No such user exists'
+
+        else:
+            login, passhash, idar = res
+            response['login'] = login
+            response['password_hash'] = passhash
+            response['access_rights_id'] = idar
 
     except KeyError:
         response['error'] = 'Invalid parameters'
@@ -90,7 +95,7 @@ def register_new_employee():
         cur.callproc('LogisticCompany.RegisterEmployee', args)
         cur.execute('SELECT @_LogisticCompany.RegisterEmployee_0')
 
-        response['employee_id'] = cur.fetchone()[0]
+        response['employee_id'] = cur.fetchone()
 
         mysql.connection.commit()
 
