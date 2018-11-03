@@ -46,8 +46,8 @@ def login():
     return jsonify(response)
 
 
-@app.route('/info_by_login', methods=['GET', ])
-def info_by_login():
+@app.route('/user_by_login', methods=['GET', ])
+def user_by_login():
     response = {'error': 'none'}
 
     try:
