@@ -32,13 +32,13 @@ def login():
             WHERE Login = %s AND PassHash = %s;
             """, (login, passhash,))
 
-        employee_id, access_rights = cur.fetchone()
-
-        if employee_id:
-            response['access_right_id'] = access_rights
-
-        else:
+        res = cur.fetchone()
+        if not res:
             response['error'] = 'Invalid Login or Password'
+            return jsonify(response)
+
+        employee_id, access_rights = res
+        response['access_right_id'] = access_rights
 
     except KeyError:
         response['error'] = 'Invalid JSON'

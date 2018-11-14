@@ -4,8 +4,8 @@ class Config(object):
     # SQLALCHEMY_DATABASE_URI = 'mysql://root:SATeamDB777@10.90.138.29:6033/'
     # SQLALCHEMY_TRACK_MODIFICATIONS = False
     MYSQL_HOST = "10.90.138.29"
-    MYSQL_PORT = 6033
-    # MYSQL_PORT = 3066
+    # MYSQL_PORT = 6033
+    MYSQL_PORT = 3066
     MYSQL_USER = "root"
     MYSQL_PASSWORD = "SATeamDB777"
     JSON_AS_ASCII = False
